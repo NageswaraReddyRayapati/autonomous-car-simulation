@@ -7,58 +7,48 @@ import java.util.Map;
 public class Simulation {
     private final Field field;
     private final List<Car> cars;
+    private Map<Car, String> results;
 
     public Simulation(Field field, List<Car> cars) {
         this.field = field;
         this.cars = cars;
+        this.results = new HashMap<>();
     }
 
     public void run() {
-        boolean collisionDetected = false;
-        int step = 0;
-        Car collidingCar1 = null;
-        Car collidingCar2 = null;
-        int collisionX = 0;
-        int collisionY = 0;
-
-        while (!collisionDetected && carsHaveCommands()) {
-            step++;
-            Map<String, Integer> carPositions = new HashMap<>();
-
+        boolean collision = false;
+        for (int step = 0; !collision && cars.stream().anyMatch(car -> !car.getCommands().isEmpty()); step++) {
+            Map<String, Car> positions = new HashMap<>();
             for (Car car : cars) {
-                if (car.hasCommands()) {
-                    car.executeNextCommand(field);
-                    String position = car.getX() + "," + car.getY();
-                    if (carPositions.containsKey(position)) {
-                        collisionDetected = true;
-                        collidingCar1 = cars.get(carPositions.get(position));
-                        collidingCar2 = car;
-                        collisionX = car.getX();
-                        collisionY = car.getY();
-                        break;
-                    } else {
-                        carPositions.put(position, cars.indexOf(car));
-                    }
+                car.executeNextCommand(field);
+                String positionKey = car.getX() + "," + car.getY();
+                if (positions.containsKey(positionKey)) {
+                    Car collidedCar = positions.get(positionKey);
+                    results.put(car, String.format("%s collides with %s at (%d,%d) at step %d", car.getName(), collidedCar.getName(), car.getX(), car.getY(), step + 1));
+                    results.put(collidedCar, String.format("%s collides with %s at (%d,%d) at step %d", collidedCar.getName(), car.getName(), collidedCar.getX(), collidedCar.getY(), step + 1));
+                    collision = true;
+                } else {
+                    positions.put(positionKey, car);
                 }
             }
         }
 
-        if (collisionDetected) {
-            System.out.println(collidingCar1.getName() + " collides with " + collidingCar2.getName() + " at (" + collisionX + "," + collisionY + ") at step " + step);
-            System.out.println(collidingCar2.getName() + " collides with " + collidingCar1.getName() + " at (" + collisionX + "," + collisionY + ") at step " + step);
-        } else {
-            showResults();
-        }
-    }
+            showResults(collision);
 
-    private boolean carsHaveCommands() {
-        return cars.stream().anyMatch(Car::hasCommands);
     }
-
-    private void showResults() {
+    public void showResults(boolean collision) {
         System.out.println("Final positions of cars:");
-        for (Car car : cars) {
-            System.out.println(car.getName() + ", (" + car.getX() + "," + car.getY() + ") " + car.getDirection());
+        if(!collision) {
+            for (Car car : cars) {
+                System.out.println(car.getName() + " is at (" + car.getX() + "," + car.getY() + ") facing " + car.getDirection());
+            }
+        }else {
+            results.forEach((carName, result) -> System.out.println(result));
         }
     }
+
+    public Map<Car, String> getCollisionResults() {
+        return results;
+    }
+
 }
