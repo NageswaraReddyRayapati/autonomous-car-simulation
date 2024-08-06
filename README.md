@@ -16,7 +16,7 @@ This project simulates an autonomous driving car system on a rectangular field. 
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/yourusername/autodrive-simulation.git
+    git clone https://github.com/NageswaraReddyRayapati/autonomous-car-simulation.git
     cd autodrive-simulation
     ```
 
